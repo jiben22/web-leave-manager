@@ -1,0 +1,36 @@
+version: 2
+jobs:
+  build:
+    working_directory: ~/web-leave-manager
+    docker:
+      - image: circleci/openjdk:11.0.2-jdk
+
+    steps:
+      # git pull
+      - checkout
+
+      # Download and cache dependencies
+      - restore_cache:
+          key: circleci-leave-manager-{{ checksum "pom.xml" }}
+
+      #  Gets the project dependencies
+      - run: mvn dependency:go-offline
+
+      #  Saves the project dependencies
+      - save_cache:
+          paths:
+            - ~/.m2
+          key: circleci-leave-manager-{{ checksum "pom.xml" }}
+
+      # Run tests
+      - run: mvn package
+
+      # Uploads the test metadata
+      - store_test_results:
+          path: target/surefire-reports
+
+      # Store the jar as an artifact
+      - store_artifacts:
+          path: target/web-leave-manager-*.jar
+
+      # See https://circleci.com/docs/2.0/deployment-integrations/ for deploy examples
